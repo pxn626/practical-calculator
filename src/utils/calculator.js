@@ -45,13 +45,21 @@ export function evaluate(expr) {
     .replace(/√/g, 'sqrt')
 
   // 双参数 log(a, b) = log_a(b) = log(b)/log(a)
-  // 用占位符避免重复匹配
+  // 两阶段处理以支持嵌套:
+  //   阶段1: 反复 match 内层的双参数 log (val 不含 log()
+  //   阶段2: 反复 match 嵌套结构 (val 是占位符 __LOG_PAIR_N__)
   let __log_pairs = []
-  normalized = normalized.replace(/\blog\(([^,()]+),\s*([^()]+)\)/g, function (match, base, val) {
-    const idx = __log_pairs.length
-    __log_pairs.push({ base: base.trim(), val: val.trim() })
-    return '__LOG_PAIR_' + idx + '__'
-  })
+  let __prev_log = ''
+  while (normalized !== __prev_log) {
+    __prev_log = normalized
+    normalized = normalized.replace(/\blog\(\s*([^,()]+)\s*,\s*([^()]+)\)/g, function (match, base, val) {
+      // 如果 val 包含 log(, 跳过让内层先处理
+      if (/\blog\(/.test(val)) return match
+      const idx = __log_pairs.length
+      __log_pairs.push({ base: base.trim(), val: val.trim() })
+      return '__LOG_PAIR_' + idx + '__'
+    })
+  }
 
   normalized = normalized
     // 单参数 log(x) → log10(x) (中国教科书标准,log 默认以10为底)
@@ -60,24 +68,35 @@ export function evaluate(expr) {
     .replace(/\bln\b/g, 'log')
 
   // 把双参数 log 占位符展开成 log(b)/log(a)
-  __log_pairs.forEach(function (pair, idx) {
-    const placeholder = '__LOG_PAIR_' + idx + '__'
-    // log_a(b) = log(b)/log(a)
-    // 在 mathjs 里 log(b)/log(a) = ln(b)/ln(a)
+  // 注意: 必须 反向 处理(从外到内),这样内层的 __LOG_PAIR_0__ 先被外层引用再展开
+  // 否则嵌套 log(2, log(2, 16)) 会留下未替换的占位符
+  for (let i = __log_pairs.length - 1; i >= 0; i--) {
+    const pair = __log_pairs[i]
+    const placeholder = '__LOG_PAIR_' + i + '__'
+    // log_a(b) = log(b)/log(a) = ln(b)/ln(a)
     normalized = normalized.split(placeholder).join('log(' + pair.val + ')/log(' + pair.base + ')')
-  })
+  }
 
-  // 第二步: 三角函数转弧度
-  // 用临时占位符避免重复匹配
+  // 三角函数转弧度: 迭代处理,只在最内层三角函数(无嵌套三角函数)乘 π/180
+  // 嵌套时外层不乘 π/180,内层已转度数 → mathjs 直接算
+  //
+  // 例:
+  //   sin(45)        → sin((45) * pi / 180)        = sin(45°) = 0.707
+  //   sin(cos(45))   → sin(cos((45) * pi / 180))   = sin(cos(45°)) = sin(0.707) ≈ 0.65
   let s = normalized
-    .replace(/\bsin\(([^)]*)\)/g, '___SIN___($1)')
-    .replace(/\bcos\(([^)]*)\)/g, '___COS___($1)')
-    .replace(/\btan\(([^)]*)\)/g, '___TAN___($1)')
-
-  s = s
-    .replace(/___SIN___\(([^)]*)\)/g, 'sin(($1) * pi / 180)')
-    .replace(/___COS___\(([^)]*)\)/g, 'cos(($1) * pi / 180)')
-    .replace(/___TAN___\(([^)]*)\)/g, 'tan(($1) * pi / 180)')
+  let prev = ''
+  while (s !== prev) {
+    prev = s
+    s = s.replace(/\b(sin|cos|tan)\(([^()]+)\)/g, function (match, fn, arg) {
+      // 检查 arg 是否包含其他三角函数
+      if (/\b(?:sin|cos|tan)\(/.test(arg)) {
+        // 嵌套,等内层先转
+        return match
+      }
+      // 最内层,转度数
+      return fn + '((' + arg + ') * pi / 180)'
+    })
+  }
 
   try {
     const result = math.evaluate(s)
