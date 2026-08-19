@@ -251,8 +251,8 @@ export default {
           break
         case "logab":
           // 双参数 log(a, b) = log_a(b) (以 a 为底,b 为真数)
-          // append "log(," 让用户输入底数 + 真数
-          expression.value += "log(,"
+          // append "log(" 开括号,等用户输入: 底数, 真数)
+          expression.value += "log("
           break
         case "ln":
           expression.value += "ln("
