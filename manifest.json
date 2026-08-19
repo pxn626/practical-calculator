@@ -1,0 +1,72 @@
+{
+  "name": "实用计算器",
+  "appid": "",
+  "description": "Practical Calculator - 双语科学计算器，支持标准/科学计算、深色模式、横竖屏切换、历史记录、大写转换、复制粘贴和再编辑功能。",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {
+      "Push": {}
+    },
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>"
+        ],
+        "minSdkVersion": 21,
+        "targetSdkVersion": 30,
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"]
+      },
+      "ios": {},
+      "sdkConfigs": {
+        "ad": {
+          "google": {
+            "adUnitId": "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+          }
+        }
+      },
+      "icons": {
+        "android": {
+          "hdpi": "static/icons/icon-72.png",
+          "xhdpi": "static/icons/icon-96.png",
+          "xxhdpi": "static/icons/icon-144.png",
+          "xxxhdpi": "static/icons/icon-192.png"
+        }
+      }
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true
+  },
+  "mp-alipay": {
+    "usingComponents": true
+  },
+  "mp-baidu": {
+    "usingComponents": true
+  },
+  "mp-toutiao": {
+    "usingComponents": true
+  },
+  "vueVersion": "2"
+}

@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "实用计算器",
+    "subtitle": "科学计算器"
+  },
+  "keypad": {
+    "clear": "AC",
+    "sign": "±",
+    "percent": "%",
+    "divide": "÷",
+    "multiply": "×",
+    "subtract": "−",
+    "add": "+",
+    "equals": "=",
+    "decimal": ".",
+    "zero": "0",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
+    "sin": "sin",
+    "cos": "cos",
+    "tan": "tan",
+    "log": "log",
+    "ln": "ln",
+    "sqrt": "√",
+    "square": "x²",
+    "power": "x^y",
+    "pi": "π",
+    "e": "e",
+    "factorial": "n!",
+    "open": "(",
+    "close": ")"
+  },
+  "actions": {
+    "history": "历史记录",
+    "clearHistory": "清空历史",
+    "copy": "复制",
+    "paste": "粘贴",
+    "copySuccess": "已复制到剪贴板",
+    "pasteSuccess": "已从剪贴板粘贴",
+    "capitalNumber": "大写",
+    "lightMode": "浅色",
+    "darkMode": "深色",
+    "systemMode": "自动"
+  },
+  "display": {
+    "placeholder": "0",
+    "error": "错误"
+  }
+}

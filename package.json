@@ -1,0 +1,41 @@
+{
+  "name": "practical-calculator",
+  "version": "0.1.0",
+  "description": "Practical Calculator - 双语科学计算器 App (uni-app)",
+  "main": "src/main.js",
+  "scripts": {
+    "dev:app": "uni -p app",
+    "dev:app-android": "uni -p app-android",
+    "dev:app-ios": "uni -p app-ios",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:mp-alipay": "uni -p mp-alipay",
+    "dev:mp-baidu": "uni -p mp-baidu",
+    "dev:mp-toutiao": "uni -p mp-toutiao",
+    "dev:h5": "uni",
+    "build:app": "uni build -p app",
+    "build:app-android": "uni build -p app-android",
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "build:mp-alipay": "uni build -p mp-alipay",
+    "build:mp-baidu": "uni build -p mp-baidu",
+    "build:mp-toutiao": "uni build -p mp-toutiao",
+    "build:h5": "uni build"
+  },
+  "dependencies": {
+    "vue": "^2.6.14",
+    "vuex": "^3.6.2",
+    "vue-i18n": "^8.27.0",
+    "@dcloudio/uni-app": "^3.0.0-4020920240930001",
+    "@dcloudio/uni-app-plus": "^3.0.0-4020920240930001",
+    "@dcloudio/uni-components": "^3.0.0-4020920240930001",
+    "@dcloudio/uni-h5": "^3.0.0-4020920240930001",
+    "@dcloudio/uni-mp-weixin": "^3.0.0-4020920240930001",
+    "mathjs": "^11.11.1"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-cli-shared": "^3.0.0-4020920240930001",
+    "@dcloudio/vite-plugin-uni": "^3.0.0-4020920240930001",
+    "vite": "^4.0.0"
+  },
+  "author": "pxn626",
+  "license": "MIT"
+}
