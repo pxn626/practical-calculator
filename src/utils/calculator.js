@@ -43,6 +43,7 @@ export function evaluate(expr) {
     .replace(/−/g, '-')
     .replace(/π/g, 'pi')
     .replace(/√/g, 'sqrt')
+    .replace(/\blog\b/g, 'log10')
     .replace(/\bln\b/g, 'log')
 
   // 第二步: 三角函数转弧度
