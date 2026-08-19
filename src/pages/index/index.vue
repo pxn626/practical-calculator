@@ -27,16 +27,32 @@
     <!-- 历史记录面板 -->
     <history-panel :visible="showHistory" @select="onHistorySelect" />
 
-    <!-- 复制粘贴/大写 按钮行 -->
+    <!-- 操作按钮区 (复制/粘贴/大写切换) -->
     <view class="action-bar">
-      <view class="action-btn" @tap="onCopy">
-        <text>{{ $t("actions.copy") }}</text>
+      <view class="action-btn copy-btn" @tap="toggleCopyMenu">
+        <text>📋 复制 ▼</text>
       </view>
       <view class="action-btn" @tap="onPaste">
         <text>{{ $t("actions.paste") }}</text>
       </view>
-      <view class="action-btn" @tap="onToggleCapital">
+      <view class="action-btn" @tap="onToggleCapital" :class="{ active: showCapital }">
         <text>{{ $t("actions.capitalNumber") }}</text>
+      </view>
+    </view>
+
+    <!-- 复制子菜单 (复制公式/结果/大写) -->
+    <view v-if="showCopyMenu" class="copy-submenu">
+      <view class="copy-option" @tap="onCopyFormula">
+        <text>复制公式</text>
+        <text class="preview">{{ expression || "(空)" }}</text>
+      </view>
+      <view class="copy-option" @tap="onCopyResult">
+        <text>复制结果</text>
+        <text class="preview">{{ result }}</text>
+      </view>
+      <view class="copy-option" @tap="onCopyCapital" :class="{ disabled: !capitalText }">
+        <text>复制大写</text>
+        <text class="preview">{{ capitalText || "(需开启大写)" }}</text>
       </view>
     </view>
 
@@ -75,6 +91,7 @@ export default {
     const showCapital = ref(false)
     const capitalText = ref("")
     const lastWasEquals = ref(false)
+    const showCopyMenu = ref(false)
 
     const historyStore = useHistoryStore()
     const themeStore = useThemeStore()
@@ -220,7 +237,7 @@ export default {
           preview()
           break
         case "sq":
-          expression.value += "^2"
+          expression.value += "^(2)"
           preview()
           break
         case "sin":
@@ -237,21 +254,23 @@ export default {
       }
     }
 
-    // 复制: H5 模式用 navigator.clipboard, App 模式用 uni.setClipboardData
-    const onCopy = async () => {
-      const text = result.value
+    // 底层复制函数 (H5 / App 兼容)
+    const doCopy = async (text) => {
+      if (!text && text !== 0) {
+        uni.showToast({ title: "内容为空", icon: "none" })
+        return
+      }
+      const str = String(text)
       try {
-        // H5 模式: 优先现代 API
         // #ifdef H5
         if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text)
+          await navigator.clipboard.writeText(str)
           uni.showToast({ title: "已复制", icon: "none" })
           return
         }
-        // H5 fallback: 用 textarea + execCommand
         if (typeof document !== "undefined") {
           const ta = document.createElement("textarea")
-          ta.value = text
+          ta.value = str
           ta.style.position = "fixed"
           ta.style.left = "-9999px"
           document.body.appendChild(ta)
@@ -262,9 +281,8 @@ export default {
           return
         }
         // #endif
-        // App/小程序模式: 用 uni API
         uni.setClipboardData({
-          data: text,
+          data: str,
           success: () => uni.showToast({ title: "已复制", icon: "none" }),
           fail: () => uni.showToast({ title: "复制失败", icon: "none" })
         })
@@ -272,6 +290,35 @@ export default {
         console.error("copy failed:", e)
         uni.showToast({ title: "复制失败", icon: "none" })
       }
+    }
+
+    // 切换复制子菜单
+    const toggleCopyMenu = () => {
+      showCopyMenu.value = !showCopyMenu.value
+      // 计算/打开大写(若需要复制大写)
+      if (!capitalText.value && result.value) {
+        updateCapital(result.value)
+      }
+    }
+
+    // 复制公式
+    const onCopyFormula = () => {
+      doCopy(expression.value)
+      showCopyMenu.value = false
+    }
+    // 复制结果
+    const onCopyResult = () => {
+      doCopy(result.value)
+      showCopyMenu.value = false
+    }
+    // 复制大写
+    const onCopyCapital = () => {
+      if (!capitalText.value) {
+        uni.showToast({ title: "请先开启大写", icon: "none" })
+        return
+      }
+      doCopy(capitalText.value)
+      showCopyMenu.value = false
     }
 
     // 粘贴: H5 用 navigator.clipboard.readText, App 用 uni API
@@ -342,7 +389,11 @@ export default {
       toggleMode,
       toggleTheme,
       onKeyTap,
-      onCopy,
+      showCopyMenu,
+      toggleCopyMenu,
+      onCopyFormula,
+      onCopyResult,
+      onCopyCapital,
       onPaste,
       onToggleCapital,
       onHistorySelect,
@@ -414,6 +465,53 @@ export default {
 
   &:active {
     background-color: var(--bg-primary);
+  }
+
+  &.active {
+    background-color: var(--key-equals);
+    color: var(--key-equals-text);
+  }
+
+  &.copy-btn {
+    background-color: var(--bg-primary);
+    font-weight: 600;
+  }
+}
+
+.copy-submenu {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-secondary);
+  border-bottom: 1rpx solid var(--border-color);
+  padding: 8rpx 16rpx;
+}
+
+.copy-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  margin: 4rpx 0;
+  background-color: var(--bg-primary);
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+
+  &:active {
+    opacity: 0.7;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+  }
+
+  .preview {
+    font-size: 22rpx;
+    color: var(--text-secondary);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
