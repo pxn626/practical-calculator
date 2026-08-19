@@ -52,14 +52,15 @@
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue'
 import CalcDisplay from '@/components/calc-display.vue'
 import CalcKeypad from '@/components/calc-keypad.vue'
 import HistoryPanel from '@/components/history-panel.vue'
 import AdBanner from '@/components/ad-banner.vue'
-import { evaluate, factorial } from '@/utils/calculator.js'
+import { evaluate } from '@/utils/calculator.js'
 import { toChineseCapital } from '@/utils/toChineseNumber.js'
-import { mapState, mapActions, mapMutations } from 'vuex'
-import { applyTheme } from '@/store/theme.js'
+import { useHistoryStore } from '@/store/history.js'
+import { useThemeStore, applyTheme } from '@/store/theme.js'
 
 export default {
   components: {
@@ -68,222 +69,223 @@ export default {
     HistoryPanel,
     AdBanner
   },
-  data() {
-    return {
-      expression: '',
-      result: '0',
-      isLandscape: false,
-      showHistory: false,
-      showCapital: false,
-      capitalText: '',
-      lastWasEquals: false
-    }
-  },
-  computed: {
-    ...mapState('theme', ['mode']),
-    themeMode() {
-      return this.mode
-    }
-  },
-  onLoad() {
-    this.initOrientation()
-    this.initHistory()
-    // 监听屏幕旋转
-    uni.onWindowResize && uni.onWindowResize(this.onResize)
-    // #ifdef H5
-    window.addEventListener('resize', this.onResize)
-    // #endif
-  },
-  onUnload() {
-    uni.offWindowResize && uni.offWindowResize(this.onResize)
-    // #ifdef H5
-    window.removeEventListener('resize', this.onResize)
-    // #endif
-  },
-  methods: {
-    ...mapMutations('history', ['init']),
-    ...mapActions('history', ['add']),
+  setup() {
+    const expression = ref('')
+    const result = ref('0')
+    const isLandscape = ref(false)
+    const showHistory = ref(false)
+    const showCapital = ref(false)
+    const capitalText = ref('')
+    const lastWasEquals = ref(false)
 
-    initOrientation() {
+    const historyStore = useHistoryStore()
+    const themeStore = useThemeStore()
+
+    const themeMode = computed(() => themeStore.mode)
+
+    const initOrientation = () => {
       // #ifdef H5
-      this.isLandscape = window.innerWidth > window.innerHeight
+      if (typeof window !== 'undefined') {
+        isLandscape.value = window.innerWidth > window.innerHeight
+      }
       // #endif
       // #ifndef H5
-      const sys = uni.getSystemInfoSync()
-      this.isLandscape = sys.windowWidth > sys.windowHeight
+      try {
+        const sys = uni.getSystemInfoSync()
+        isLandscape.value = sys.windowWidth > sys.windowHeight
+      } catch (e) {}
       // #endif
-    },
+    }
 
-    onResize() {
-      this.initOrientation()
-    },
+    const onResize = () => {
+      initOrientation()
+    }
 
-    initHistory() {
-      this.init()
-    },
+    onMounted(() => {
+      initOrientation()
+      historyStore.init()
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        window.addEventListener('resize', onResize)
+      }
+      // #endif
+    })
 
-    toggleHistory() {
-      this.showHistory = !this.showHistory
-    },
+    const toggleHistory = () => {
+      showHistory.value = !showHistory.value
+    }
 
-    toggleTheme() {
-      const next = this.mode === 'dark' ? 'light' : 'dark'
-      this.$store.dispatch('theme/set', next)
+    const toggleTheme = () => {
+      const next = themeStore.mode === 'dark' ? 'light' : 'dark'
+      themeStore.set(next)
       applyTheme(next)
-    },
+    }
 
-    onKeyTap(value) {
+    const preview = () => {
+      try {
+        const res = evaluate(expression.value)
+        if (res !== 'Error') {
+          result.value = res
+        }
+      } catch (e) {
+        // 表达式不完整时静默
+      }
+    }
+
+    const clearAll = () => {
+      expression.value = ''
+      result.value = '0'
+      showCapital.value = false
+      lastWasEquals.value = false
+    }
+
+    const toggleSign = () => {
+      if (expression.value.startsWith('-')) {
+        expression.value = expression.value.slice(1)
+      } else {
+        expression.value = '-' + expression.value
+      }
+      preview()
+    }
+
+    const appendPercent = () => {
+      expression.value += '%'
+      preview()
+    }
+
+    const appendFactorial = () => {
+      expression.value += '!'
+      preview()
+    }
+
+    const calculate = () => {
+      const expr = expression.value
+      const res = evaluate(expr)
+      result.value = res
+      lastWasEquals.value = true
+
+      if (res !== 'Error' && expr) {
+        historyStore.add({ expression: expr, result: res })
+      }
+
+      if (showCapital.value) {
+        updateCapital(res)
+      }
+    }
+
+    const onKeyTap = (value) => {
       switch (value) {
         case 'AC':
-          this.clearAll()
+          clearAll()
           break
         case 'sign':
-          this.toggleSign()
+          toggleSign()
           break
         case '%':
-          this.appendPercent()
+          appendPercent()
           break
         case '=':
-          this.calculate()
+          calculate()
           break
         case 'factorial':
-          this.appendFactorial()
+          appendFactorial()
           break
         case 'pi':
-          this.expression += 'π'
-          this.preview()
+          expression.value += 'π'
+          preview()
           break
         case 'e':
-          this.expression += 'e'
-          this.preview()
+          expression.value += 'e'
+          preview()
           break
         case 'sqrt':
-          this.expression += '√('
-          this.preview()
+          expression.value += '√('
+          preview()
           break
         case 'sq':
-          this.expression += '^2'
-          this.preview()
+          expression.value += '^2'
+          preview()
           break
         case 'sin':
         case 'cos':
         case 'tan':
         case 'log':
         case 'ln':
-          this.expression += value + '('
-          this.preview()
+          expression.value += value + '('
+          preview()
           break
         default:
-          this.expression += value
-          this.preview()
+          expression.value += value
+          preview()
       }
-    },
+    }
 
-    clearAll() {
-      this.expression = ''
-      this.result = '0'
-      this.showCapital = false
-      this.lastWasEquals = false
-    },
-
-    toggleSign() {
-      if (this.expression.startsWith('-')) {
-        this.expression = this.expression.slice(1)
-      } else {
-        this.expression = '-' + this.expression
-      }
-      this.preview()
-    },
-
-    appendPercent() {
-      this.expression += '%'
-      this.preview()
-    },
-
-    appendFactorial() {
-      this.expression += '!'
-      this.preview()
-    },
-
-    preview() {
-      // 实时预览（不保存到历史）
-      try {
-        const result = evaluate(this.expression)
-        if (result !== 'Error') {
-          this.result = result
-        }
-      } catch (e) {
-        // 表达式不完整时静默
-      }
-    },
-
-    calculate() {
-      const expr = this.expression
-      const result = evaluate(expr)
-      this.result = result
-      this.lastWasEquals = true
-
-      // 保存到历史
-      if (result !== 'Error' && expr) {
-        this.add({ expression: expr, result })
-      }
-
-      // 更新大写显示
-      if (this.showCapital) {
-        this.updateCapital(result)
-      }
-    },
-
-    onCopy() {
+    const onCopy = () => {
       uni.setClipboardData({
-        data: this.result,
+        data: result.value,
         success: () => {
           uni.showToast({
-            title: this.$t('actions.copySuccess'),
+            title: '已复制',
             icon: 'none'
           })
         }
       })
-    },
+    }
 
-    onPaste() {
+    const onPaste = () => {
       uni.getClipboardData({
         success: (res) => {
-          // 简单粘贴 - 过滤非数字字符
           const cleaned = res.data.replace(/[^0-9.+\-*/÷×−()%π√^!]/g, '')
           if (cleaned) {
-            this.expression += cleaned
-            this.preview()
+            expression.value += cleaned
+            preview()
             uni.showToast({
-              title: this.$t('actions.pasteSuccess'),
+              title: '已粘贴',
               icon: 'none'
             })
           }
         }
       })
-    },
+    }
 
-    onToggleCapital() {
-      this.showCapital = !this.showCapital
-      if (this.showCapital) {
-        this.updateCapital(this.result)
-      }
-    },
-
-    updateCapital(value) {
+    const updateCapital = (value) => {
       const num = parseFloat(value)
       if (!isNaN(num)) {
-        this.capitalText = toChineseCapital(num)
+        capitalText.value = toChineseCapital(num)
       } else {
-        this.capitalText = ''
+        capitalText.value = ''
       }
-    },
+    }
 
-    onHistorySelect(item) {
-      this.expression = item.expression
-      this.result = item.result
-      this.showHistory = false
-      this.lastWasEquals = true
+    const onToggleCapital = () => {
+      showCapital.value = !showCapital.value
+      if (showCapital.value) {
+        updateCapital(result.value)
+      }
+    }
+
+    const onHistorySelect = (item) => {
+      expression.value = item.expression
+      result.value = item.result
+      showHistory.value = false
+      lastWasEquals.value = true
+    }
+
+    return {
+      expression,
+      result,
+      isLandscape,
+      showHistory,
+      showCapital,
+      capitalText,
+      themeMode,
+      toggleHistory,
+      toggleTheme,
+      onKeyTap,
+      onCopy,
+      onPaste,
+      onToggleCapital,
+      onHistorySelect
     }
   }
 }

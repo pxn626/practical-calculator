@@ -19,7 +19,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { computed } from 'vue'
+import { useHistoryStore } from '@/store/history.js'
 
 export default {
   name: 'history-panel',
@@ -29,17 +30,19 @@ export default {
       default: false
     }
   },
-  computed: {
-    ...mapState('history', ['list'])
-  },
-  methods: {
-    ...mapActions('history', ['clear']),
-    onClear() {
-      this.clear()
-    },
-    onSelect(item) {
-      this.$emit('select', item)
+  setup(props, { emit }) {
+    const historyStore = useHistoryStore()
+    const list = computed(() => historyStore.list)
+
+    const onClear = () => {
+      historyStore.clear()
     }
+
+    const onSelect = (item) => {
+      emit('select', item)
+    }
+
+    return { list, onClear, onSelect }
   }
 }
 </script>

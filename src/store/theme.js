@@ -1,39 +1,35 @@
 /**
- * 主题 store
+ * 主题 store (Pinia)
  * 支持:light / dark / system (跟随系统)
  */
 
-const STORAGE_KEY = 'calc-theme'
+import { defineStore } from 'pinia'
 
-export default {
-  namespaced: true,
-  state: {
+const STORAGE_KEY = '__calc_theme_mode__'
+
+export const useThemeStore = defineStore('theme', {
+  state: () => ({
     mode: 'system' // 'light' | 'dark' | 'system'
-  },
-  mutations: {
-    init(state) {
+  }),
+  actions: {
+    init() {
       try {
         const mode = uni.getStorageSync(STORAGE_KEY)
-        if (mode) state.mode = mode
+        if (mode) this.mode = mode
       } catch (e) {
         console.error('theme init failed:', e)
       }
     },
-    set(state, mode) {
-      state.mode = mode
+    set(mode) {
+      this.mode = mode
       try {
         uni.setStorageSync(STORAGE_KEY, mode)
       } catch (e) {
         console.error('theme save failed:', e)
       }
     }
-  },
-  actions: {
-    set({ commit }, mode) {
-      commit('set', mode)
-    }
   }
-}
+})
 
 /**
  * 初始化主题应用

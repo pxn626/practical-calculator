@@ -1,28 +1,25 @@
-import Vue from 'vue'
-import App from './App'
-import Vuex from 'vuex'
-import VueI18n from 'vue-i18n'
-
+import { createSSRApp } from 'vue'
+import { createI18n } from 'vue-i18n'
+import { createPinia } from 'pinia'
+import App from './App.vue'
 import en from './locales/en.json'
 import zh from './locales/zh.json'
-import store from './store'
 
-Vue.config.productionTip = false
-Vue.use(Vuex)
-Vue.use(VueI18n)
+export function createApp() {
+  const app = createSSRApp(App)
 
-const i18n = new VueI18n({
-  locale: uni.getSystemInfoSync().language === 'zh-CN' ? 'zh' : 'en',
-  fallbackLocale: 'en',
-  messages: {
-    en,
-    zh
-  }
-})
+  // i18n
+  const i18n = createI18n({
+    legacy: false,
+    locale: uni.getSystemInfoSync().language === 'zh-CN' ? 'zh' : 'en',
+    fallbackLocale: 'en',
+    messages: { en, zh }
+  })
+  app.use(i18n)
 
-const app = new Vue({
-  i18n,
-  store,
-  ...App
-})
-app.$mount()
+  // Pinia store
+  const pinia = createPinia()
+  app.use(pinia)
+
+  return { app }
+}

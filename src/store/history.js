@@ -1,68 +1,57 @@
 /**
- * 历史记录 store
+ * 历史记录 store (Pinia)
  * 持久化:uni.setStorageSync('calc-history', JSON.stringify(state.list))
  */
 
-const STORAGE_KEY = 'calc-history'
+import { defineStore } from 'pinia'
+
+const STORAGE_KEY = '__calc_history__'
 const MAX_HISTORY = 50
 
-export default {
-  namespaced: true,
-  state: {
+export const useHistoryStore = defineStore('history', {
+  state: () => ({
     list: []
-  },
-  mutations: {
-    init(state) {
+  }),
+  actions: {
+    init() {
       try {
         const list = uni.getStorageSync(STORAGE_KEY)
-        if (list) state.list = JSON.parse(list)
+        if (list) this.list = JSON.parse(list)
       } catch (e) {
         console.error('history init failed:', e)
       }
     },
-    add(state, entry) {
+    add(entry) {
       const item = {
         id: Date.now(),
         expression: entry.expression,
         result: entry.result,
         timestamp: Date.now()
       }
-      state.list.unshift(item)
-      if (state.list.length > MAX_HISTORY) {
-        state.list = state.list.slice(0, MAX_HISTORY)
+      this.list.unshift(item)
+      if (this.list.length > MAX_HISTORY) {
+        this.list = this.list.slice(0, MAX_HISTORY)
       }
-      try {
-        uni.setStorageSync(STORAGE_KEY, JSON.stringify(state.list))
-      } catch (e) {
-        console.error('history save failed:', e)
-      }
+      this._save()
     },
-    remove(state, id) {
-      state.list = state.list.filter(item => item.id !== id)
-      try {
-        uni.setStorageSync(STORAGE_KEY, JSON.stringify(state.list))
-      } catch (e) {
-        console.error('history save failed:', e)
-      }
+    remove(id) {
+      this.list = this.list.filter(item => item.id !== id)
+      this._save()
     },
-    clear(state) {
-      state.list = []
+    clear() {
+      this.list = []
       try {
         uni.removeStorageSync(STORAGE_KEY)
       } catch (e) {
         console.error('history clear failed:', e)
       }
-    }
-  },
-  actions: {
-    add({ commit }, entry) {
-      commit('add', entry)
     },
-    remove({ commit }, id) {
-      commit('remove', id)
-    },
-    clear({ commit }) {
-      commit('clear')
+    _save() {
+      try {
+        uni.setStorageSync(STORAGE_KEY, JSON.stringify(this.list))
+      } catch (e) {
+        console.error('history save failed:', e)
+      }
     }
   }
-}
+})
