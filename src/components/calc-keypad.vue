@@ -1,6 +1,6 @@
 <template>
-  <view class="calc-keypad" :class="{ 'scientific': mode === 'scientific' }">
-    <!-- 科学计算器面板 (横屏或 unfolded) -->
+  <view class="calc-keypad" :class="{ scientific: mode === 'scientific' }">
+    <!-- 科学计算器面板 (横屏或手动切换) -->
     <view v-if="mode === 'scientific'" class="scientific-panel">
       <view class="key sci" hover-class="key-active" @tap="onTap('sin')">{{ $t('keypad.sin') }}</view>
       <view class="key sci" hover-class="key-active" @tap="onTap('cos')">{{ $t('keypad.cos') }}</view>
@@ -21,9 +21,9 @@
 
     <!-- 标准键盘 -->
     <view class="keypad-grid">
-      <!-- Row 1 -->
+      <!-- Row 1: AC | DEL | % | ÷ -->
       <view class="key func" hover-class="key-active" @tap="onTap('AC')">{{ $t('keypad.clear') }}</view>
-      <view class="key func" hover-class="key-active" @tap="onTap('sign')">{{ $t('keypad.sign') }}</view>
+      <view class="key func" hover-class="key-active" @tap="onTap('DEL')">⌫</view>
       <view class="key func" hover-class="key-active" @tap="onTap('%')">{{ $t('keypad.percent') }}</view>
       <view class="key op" hover-class="key-active" @tap="onTap('÷')">{{ $t('keypad.divide') }}</view>
 
@@ -78,6 +78,8 @@ export default {
   background-color: var(--bg-secondary);
   padding: 8rpx;
   box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
 }
 
 .scientific-panel {
@@ -92,6 +94,7 @@ export default {
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 8rpx;
   flex: 1;
+  min-height: 0;
 }
 
 .key {
@@ -136,10 +139,6 @@ export default {
     background-color: var(--key-function);
     color: var(--key-function-text);
     font-size: 28rpx;
-  }
-
-  &.zero {
-    grid-column: span 1;
   }
 }
 </style>
