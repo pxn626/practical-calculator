@@ -1,15 +1,18 @@
 <template>
-  <view class="page" :class="{ 'landscape': isLandscape }">
+  <view class="page" :class="{ landscape: isLandscape }">
     <!-- 顶部工具栏 -->
     <view class="toolbar">
       <view class="toolbar-btn" @tap="toggleHistory">
         <text class="iconfont">≡</text>
       </view>
       <view class="toolbar-title">
-        <text class="title">{{ $t('app.title') }}</text>
+        <text class="title">{{ $t("app.title") }}</text>
+      </view>
+      <view class="toolbar-btn" @tap="toggleMode">
+        <text class="iconfont">{{ keyMode === "scientific" ? "🔬" : "📱" }}</text>
       </view>
       <view class="toolbar-btn" @tap="toggleTheme">
-        <text class="iconfont">{{ themeMode === 'dark' ? '☀' : '☾' }}</text>
+        <text class="iconfont">{{ themeMode === "dark" ? "☀" : "☾" }}</text>
       </view>
     </view>
 
@@ -22,29 +25,23 @@
     />
 
     <!-- 历史记录面板 -->
-    <history-panel
-      :visible="showHistory"
-      @select="onHistorySelect"
-    />
+    <history-panel :visible="showHistory" @select="onHistorySelect" />
 
-    <!-- 复制粘贴按钮行 -->
+    <!-- 复制粘贴/大写 按钮行 -->
     <view class="action-bar">
       <view class="action-btn" @tap="onCopy">
-        <text>{{ $t('actions.copy') }}</text>
+        <text>{{ $t("actions.copy") }}</text>
       </view>
       <view class="action-btn" @tap="onPaste">
-        <text>{{ $t('actions.paste') }}</text>
+        <text>{{ $t("actions.paste") }}</text>
       </view>
       <view class="action-btn" @tap="onToggleCapital">
-        <text>{{ $t('actions.capitalNumber') }}</text>
+        <text>{{ $t("actions.capitalNumber") }}</text>
       </view>
     </view>
 
     <!-- 键盘 -->
-    <calc-keypad
-      :mode="isLandscape ? 'scientific' : 'standard'"
-      @keytap="onKeyTap"
-    />
+    <calc-keypad :mode="keyMode" @keytap="onKeyTap" />
 
     <!-- 底部广告 -->
     <ad-banner />
@@ -52,40 +49,40 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import CalcDisplay from '@/components/calc-display.vue'
-import CalcKeypad from '@/components/calc-keypad.vue'
-import HistoryPanel from '@/components/history-panel.vue'
-import AdBanner from '@/components/ad-banner.vue'
-import { evaluate } from '@/utils/calculator.js'
-import { toChineseCapital } from '@/utils/toChineseNumber.js'
-import { useHistoryStore } from '@/store/history.js'
-import { useThemeStore, applyTheme } from '@/store/theme.js'
+import { ref, onMounted } from "vue"
+import CalcDisplay from "@/components/calc-display.vue"
+import CalcKeypad from "@/components/calc-keypad.vue"
+import HistoryPanel from "@/components/history-panel.vue"
+import AdBanner from "@/components/ad-banner.vue"
+import { evaluate } from "@/utils/calculator.js"
+import { toChineseCapital } from "@/utils/toChineseNumber.js"
+import { useHistoryStore } from "@/store/history.js"
+import { useThemeStore, applyTheme } from "@/store/theme.js"
 
 export default {
   components: {
     CalcDisplay,
     CalcKeypad,
     HistoryPanel,
-    AdBanner
+    AdBanner,
   },
   setup() {
-    const expression = ref('')
-    const result = ref('0')
+    const expression = ref("")
+    const result = ref("0")
     const isLandscape = ref(false)
+    const keyMode = ref("standard") // "standard" | "scientific"
     const showHistory = ref(false)
     const showCapital = ref(false)
-    const capitalText = ref('')
+    const capitalText = ref("")
     const lastWasEquals = ref(false)
 
     const historyStore = useHistoryStore()
     const themeStore = useThemeStore()
-
-    const themeMode = computed(() => themeStore.mode)
+    const themeMode = themeStore.mode
 
     const initOrientation = () => {
       // #ifdef H5
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         isLandscape.value = window.innerWidth > window.innerHeight
       }
       // #endif
@@ -105,8 +102,8 @@ export default {
       initOrientation()
       historyStore.init()
       // #ifdef H5
-      if (typeof window !== 'undefined') {
-        window.addEventListener('resize', onResize)
+      if (typeof window !== "undefined") {
+        window.addEventListener("resize", onResize)
       }
       // #endif
     })
@@ -115,8 +112,13 @@ export default {
       showHistory.value = !showHistory.value
     }
 
+    const toggleMode = () => {
+      // 手动切换键盘模式(标准 ↔ 科学)
+      keyMode.value = keyMode.value === "standard" ? "scientific" : "standard"
+    }
+
     const toggleTheme = () => {
-      const next = themeStore.mode === 'dark' ? 'light' : 'dark'
+      const next = themeStore.mode === "dark" ? "light" : "dark"
       themeStore.set(next)
       applyTheme(next)
     }
@@ -124,7 +126,7 @@ export default {
     const preview = () => {
       try {
         const res = evaluate(expression.value)
-        if (res !== 'Error') {
+        if (res !== "Error") {
           result.value = res
         }
       } catch (e) {
@@ -133,28 +135,38 @@ export default {
     }
 
     const clearAll = () => {
-      expression.value = ''
-      result.value = '0'
+      expression.value = ""
+      result.value = "0"
       showCapital.value = false
       lastWasEquals.value = false
     }
 
+    const backspace = () => {
+      if (expression.value.length > 0) {
+        // 删除最后一个字符(支持中文/特殊字符: 用 Array.from 处理 surrogate pairs)
+        const chars = Array.from(expression.value)
+        chars.pop()
+        expression.value = chars.join("")
+        preview()
+      }
+    }
+
     const toggleSign = () => {
-      if (expression.value.startsWith('-')) {
+      if (expression.value.startsWith("-")) {
         expression.value = expression.value.slice(1)
       } else {
-        expression.value = '-' + expression.value
+        expression.value = "-" + expression.value
       }
       preview()
     }
 
     const appendPercent = () => {
-      expression.value += '%'
+      expression.value += "%"
       preview()
     }
 
     const appendFactorial = () => {
-      expression.value += '!'
+      expression.value += "!"
       preview()
     }
 
@@ -164,7 +176,7 @@ export default {
       result.value = res
       lastWasEquals.value = true
 
-      if (res !== 'Error' && expr) {
+      if (res !== "Error" && expr) {
         historyStore.add({ expression: expr, result: res })
       }
 
@@ -175,43 +187,48 @@ export default {
 
     const onKeyTap = (value) => {
       switch (value) {
-        case 'AC':
+        case "AC":
           clearAll()
           break
-        case 'sign':
+        case "DEL":
+        case "BS":
+        case "←":
+          backspace()
+          break
+        case "sign":
           toggleSign()
           break
-        case '%':
+        case "%":
           appendPercent()
           break
-        case '=':
+        case "=":
           calculate()
           break
-        case 'factorial':
+        case "factorial":
           appendFactorial()
           break
-        case 'pi':
-          expression.value += 'π'
+        case "pi":
+          expression.value += "π"
           preview()
           break
-        case 'e':
-          expression.value += 'e'
+        case "e":
+          expression.value += "e"
           preview()
           break
-        case 'sqrt':
-          expression.value += '√('
+        case "sqrt":
+          expression.value += "√("
           preview()
           break
-        case 'sq':
-          expression.value += '^2'
+        case "sq":
+          expression.value += "^2"
           preview()
           break
-        case 'sin':
-        case 'cos':
-        case 'tan':
-        case 'log':
-        case 'ln':
-          expression.value += value + '('
+        case "sin":
+        case "cos":
+        case "tan":
+        case "log":
+        case "ln":
+          expression.value += value + "("
           preview()
           break
         default:
@@ -220,32 +237,73 @@ export default {
       }
     }
 
-    const onCopy = () => {
-      uni.setClipboardData({
-        data: result.value,
-        success: () => {
-          uni.showToast({
-            title: '已复制',
-            icon: 'none'
-          })
+    // 复制: H5 模式用 navigator.clipboard, App 模式用 uni.setClipboardData
+    const onCopy = async () => {
+      const text = result.value
+      try {
+        // H5 模式: 优先现代 API
+        // #ifdef H5
+        if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text)
+          uni.showToast({ title: "已复制", icon: "none" })
+          return
         }
-      })
+        // H5 fallback: 用 textarea + execCommand
+        if (typeof document !== "undefined") {
+          const ta = document.createElement("textarea")
+          ta.value = text
+          ta.style.position = "fixed"
+          ta.style.left = "-9999px"
+          document.body.appendChild(ta)
+          ta.select()
+          document.execCommand("copy")
+          document.body.removeChild(ta)
+          uni.showToast({ title: "已复制", icon: "none" })
+          return
+        }
+        // #endif
+        // App/小程序模式: 用 uni API
+        uni.setClipboardData({
+          data: text,
+          success: () => uni.showToast({ title: "已复制", icon: "none" }),
+          fail: () => uni.showToast({ title: "复制失败", icon: "none" })
+        })
+      } catch (e) {
+        console.error("copy failed:", e)
+        uni.showToast({ title: "复制失败", icon: "none" })
+      }
     }
 
-    const onPaste = () => {
-      uni.getClipboardData({
-        success: (res) => {
-          const cleaned = res.data.replace(/[^0-9.+\-*/÷×−()%π√^!]/g, '')
-          if (cleaned) {
-            expression.value += cleaned
-            preview()
-            uni.showToast({
-              title: '已粘贴',
-              icon: 'none'
-            })
-          }
+    // 粘贴: H5 用 navigator.clipboard.readText, App 用 uni API
+    const onPaste = async () => {
+      try {
+        // #ifdef H5
+        if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText()
+          insertPasted(text)
+          return
         }
-      })
+        // #endif
+        uni.getClipboardData({
+          success: (res) => insertPasted(res.data),
+          fail: () => uni.showToast({ title: "粘贴失败", icon: "none" })
+        })
+      } catch (e) {
+        console.error("paste failed:", e)
+        uni.showToast({ title: "粘贴失败", icon: "none" })
+      }
+    }
+
+    const insertPasted = (text) => {
+      // 清理非数学字符
+      const cleaned = String(text || "").replace(/[^0-9.+\-*/÷×−()%π√^!]/g, "")
+      if (cleaned) {
+        expression.value += cleaned
+        preview()
+        uni.showToast({ title: "已粘贴", icon: "none" })
+      } else {
+        uni.showToast({ title: "剪贴板无有效内容", icon: "none" })
+      }
     }
 
     const updateCapital = (value) => {
@@ -253,7 +311,7 @@ export default {
       if (!isNaN(num)) {
         capitalText.value = toChineseCapital(num)
       } else {
-        capitalText.value = ''
+        capitalText.value = ""
       }
     }
 
@@ -275,19 +333,21 @@ export default {
       expression,
       result,
       isLandscape,
+      keyMode,
       showHistory,
       showCapital,
       capitalText,
       themeMode,
       toggleHistory,
+      toggleMode,
       toggleTheme,
       onKeyTap,
       onCopy,
       onPaste,
       onToggleCapital,
-      onHistorySelect
+      onHistorySelect,
     }
-  }
+  },
 }
 </script>
 
