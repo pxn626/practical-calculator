@@ -43,8 +43,29 @@ export function evaluate(expr) {
     .replace(/−/g, '-')
     .replace(/π/g, 'pi')
     .replace(/√/g, 'sqrt')
-    .replace(/\blog\b/g, 'log10')
+
+  // 双参数 log(a, b) = log_a(b) = log(b)/log(a)
+  // 用占位符避免重复匹配
+  let __log_pairs = []
+  normalized = normalized.replace(/\blog\(([^,()]+),\s*([^()]+)\)/g, function (match, base, val) {
+    const idx = __log_pairs.length
+    __log_pairs.push({ base: base.trim(), val: val.trim() })
+    return '__LOG_PAIR_' + idx + '__'
+  })
+
+  normalized = normalized
+    // 单参数 log(x) → log10(x) (中国教科书标准,log 默认以10为底)
+    .replace(/\blog\(/g, 'log10(')
+    // ln(x) → log(x) (自然对数)
     .replace(/\bln\b/g, 'log')
+
+  // 把双参数 log 占位符展开成 log(b)/log(a)
+  __log_pairs.forEach(function (pair, idx) {
+    const placeholder = '__LOG_PAIR_' + idx + '__'
+    // log_a(b) = log(b)/log(a)
+    // 在 mathjs 里 log(b)/log(a) = ln(b)/ln(a)
+    normalized = normalized.split(placeholder).join('log(' + pair.val + ')/log(' + pair.base + ')')
+  })
 
   // 第二步: 三角函数转弧度
   // 用临时占位符避免重复匹配
