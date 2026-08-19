@@ -37,7 +37,7 @@ export function evaluate(expr) {
   if (!expr || expr.trim() === '') return '0'
 
   // 第一步: 替换人类友好的符号为 math.js 符号
-  const normalized = expr
+  let normalized = expr
     .replace(/×/g, '*')
     .replace(/÷/g, '/')
     .replace(/−/g, '-')

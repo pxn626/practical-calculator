@@ -18,7 +18,9 @@
     "build:mp-alipay": "uni build -p mp-alipay",
     "build:mp-baidu": "uni build -p mp-baidu",
     "build:mp-toutiao": "uni build -p mp-toutiao",
-    "build:h5": "uni build"
+    "build:h5": "uni build",
+    "test": "node tests/run.js",
+    "test:watch": "echo 'TODO: watch mode not yet implemented' && exit 0"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-alpha-5020320260803001",
@@ -44,5 +46,6 @@
     "vite": "5.2.8"
   },
   "author": "pxn626",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module"
 }
