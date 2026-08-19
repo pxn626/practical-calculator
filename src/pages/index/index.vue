@@ -164,7 +164,7 @@ export default {
         const chars = Array.from(expression.value)
         chars.pop()
         expression.value = chars.join("")
-        preview()
+        
       }
     }
 
@@ -179,12 +179,12 @@ export default {
 
     const appendPercent = () => {
       expression.value += "%"
-      preview()
+      
     }
 
     const appendFactorial = () => {
       expression.value += "!"
-      preview()
+      
     }
 
     const calculate = () => {
@@ -226,26 +226,21 @@ export default {
           break
         case "pi":
           expression.value += "π"
-          preview()
           break
         case "e":
           expression.value += "e"
-          preview()
           break
         case "sqrt":
           expression.value += "√("
-          preview()
           break
         case "^":
           // 几次方: 底数 ^ 指数 (需要两个数)
           // 自动加 "^(" 让用户输指数,然后用户手动输 )
           expression.value += "^("
-          preview()
           break
         case "sq":
           // 平方: 直接 ^(2)
           expression.value += "^(2)"
-          preview()
           break
         case "sin":
         case "cos":
@@ -253,11 +248,9 @@ export default {
         case "log":
         case "ln":
           expression.value += value + "("
-          preview()
           break
         default:
           expression.value += value
-          preview()
       }
     }
 
