@@ -246,8 +246,19 @@ export default {
         case "cos":
         case "tan":
         case "log":
+          // 单参数 log(x) = log10(x) (常用对数,中国教科书标准)
+          expression.value += "log("
+          break
+        case "logab":
+          // 双参数 log(a, b) = log_a(b) (以 a 为底,b 为真数)
+          // append "log(," 让用户输入底数 + 真数
+          expression.value += "log(,"
+          break
         case "ln":
-          expression.value += value + "("
+          expression.value += "ln("
+          break
+        case ",":
+          expression.value += ","
           break
         default:
           expression.value += value

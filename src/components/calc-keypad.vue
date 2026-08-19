@@ -6,6 +6,7 @@
       <view class="key sci" hover-class="key-active" @tap="onTap('cos')">{{ $t('keypad.cos') }}</view>
       <view class="key sci" hover-class="key-active" @tap="onTap('tan')">{{ $t('keypad.tan') }}</view>
       <view class="key sci" hover-class="key-active" @tap="onTap('log')">{{ $t('keypad.log') }}</view>
+      <view class="key sci" hover-class="key-active" @tap="onTap('logab')">{{ $t('keypad.logab') }}</view>
       <view class="key sci" hover-class="key-active" @tap="onTap('ln')">{{ $t('keypad.ln') }}</view>
 
       <view class="key sci" hover-class="key-active" @tap="onTap('sqrt')">{{ $t('keypad.sqrt') }}</view>
@@ -46,8 +47,9 @@
       <view class="key op" hover-class="key-active" @tap="onTap('+')">{{ $t('keypad.add') }}</view>
 
       <!-- Row 5 -->
-      <view class="key num zero" hover-class="key-active" @tap="onTap('0')">{{ $t('keypad.zero') }}</view>
+      <view class="key num" hover-class="key-active" @tap="onTap('0')">{{ $t('keypad.zero') }}</view>
       <view class="key num" hover-class="key-active" @tap="onTap('.')">{{ $t('keypad.decimal') }}</view>
+      <view class="key num" hover-class="key-active" @tap="onTap(',')">{{ $t('keypad.comma') }}</view>
       <view class="key equals" hover-class="key-active" @tap="onTap('=')">{{ $t('keypad.equals') }}</view>
     </view>
   </view>

@@ -35,7 +35,9 @@
     "e": "e",
     "factorial": "n!",
     "open": "(",
-    "close": ")"
+    "close": ")",
+    "logab": "logₐ",
+    "comma": ","
   },
   "actions": {
     "history": "History",
