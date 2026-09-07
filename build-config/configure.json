@@ -1,0 +1,21 @@
+{
+  "project": "uni-test-pkg",
+  "platform": "android",
+  "iscustom": false,
+  "safemode": false,
+  "sourceMap": false,
+  "dsyms": false,
+  "isconfusion": false,
+  "splashads": false,
+  "rpads": false,
+  "unimpads": false,
+  "ignoreWarnings": true,
+  "android": {
+    "packagename": "com.dlsome.practicalcalc",
+    "androidpacktype": "0",
+    "certalias": "practical-calculator",
+    "certfile": "/home/penson/webpenson-keys/practical-calculator.keystore",
+    "certpassword": "PracticalCalc2026!",
+    "storePassword": "PracticalCalc2026!"
+  }
+}

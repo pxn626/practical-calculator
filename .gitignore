@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+unpackage/
+
+# build output
+dist/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# backups / temps
+*.bak
+*.tmp
+*~
