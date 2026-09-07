@@ -36,7 +36,7 @@ export function run() {
     const m = indexSource.match(regex)
     if (m) {
       const body = m[1]
-      t(`case "${caseKey}" append 'log('`, body.includes("log("),
+      t(`case "${caseKey}" append 'log('`, body.includes("logₐ("),
         `body: ${body.trim().substring(0, 100)}`)
       const hasAutoEval = body.includes("evaluate(") || body.includes("preview(") || body.includes("calculate(")
       t(`case "${caseKey}" 不调用 evaluate/preview/calculate`, !hasAutoEval)

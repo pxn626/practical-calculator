@@ -62,7 +62,7 @@ export function run() {
   const body = caseMatch[1]
 
   // 应该 append "log(" (开括号,等用户输底数)
-  t(`case 'logab' append 'log(' (不带逗号)`, body.includes('expression.value += "log("'),
+  t(`case 'logab' append 'log(' (不带逗号)`, body.includes('expression.value += "logₐ("'),
     `body: ${body.trim().substring(0, 100)}`)
 
   // 不应该 append "log(," (开括号带逗号,这是错误版本)
